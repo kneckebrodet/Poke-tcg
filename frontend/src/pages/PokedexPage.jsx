@@ -1,8 +1,8 @@
 import { useEffect, useState } from 'react'
-import PokemonCard from '../components/PokemonCard'
-import PokemonFilter from '../components/PokemonFilter'
-import Paginator from '../components/Paginator'
-import Modal from '../components/Modal'
+import PokemonCard from '../components/PokedexComponents/PokemonCard'
+import PokemonFilter from '../components/PokedexComponents/PokemonFilter'
+import Paginator from '../components/PokedexComponents/Paginator'
+import Modal from '../components/PokedexComponents/Modal'
 
 
 function PokedexPage() {
@@ -10,6 +10,7 @@ function PokedexPage() {
     const [page, setPage] = useState(1)
     const [count, setCount] = useState(0)
     const [filters, setFilters] = useState({})
+    const [selectedPokemon, setSelectedPokemon] = useState({})
     const [selectedCards, setSelectedCards] = useState([])
     const [showModal, setShowModal] = useState(false)
     const pageSize = 24
@@ -39,13 +40,17 @@ function PokedexPage() {
 
     const handleClickOnCard = (pokemon) => {
         setSelectedCards([...selectedCards, pokemon])
+        setSelectedPokemon(pokemon)
         setShowModal(true)
-        console.log(selectedCards)
+    }
+
+    const handleHideModal = () => {
+        setShowModal(false)
     }
 
     return (
-        <div className="flex flex-col items-center text-center font-sans">
-            <h1 className="mt-0 text-2x1 font-bold">Pokedex</h1>
+        <div className="flex flex-col ml-[10vw] w-[80vw] font-sans">
+            <h1 className="mt-2 mb-2 text-center text-[2em] font-bold">Pokedex</h1>
 
             <PokemonFilter onFilterChange={(newFilters) => {
                 setPage(1)
@@ -57,7 +62,7 @@ function PokedexPage() {
                 totalPages={totalPages}
                 onPageChange={setPage} />
 
-            <div className="grid gap-2 grid-cols-4 grid-rows-6 mb-[4vh]">
+            <div className="grid gap-4 grid-cols-4 mb-[4vh]">
                 {pokemons.map(pokemon => (
                     <PokemonCard
                         key={pokemon.id}
@@ -65,15 +70,15 @@ function PokedexPage() {
                         onClick={() => handleClickOnCard(pokemon)} />
                 ))}
             </div>
-            
-            {count > 4 && <Paginator
+
+            {count > 8 && <Paginator
                 page={page}
                 totalPages={totalPages}
                 onPageChange={setPage} />
             }
 
-            {showModal && <Modal />}
-            </div>
+            {showModal && <Modal pokemon={selectedPokemon} hideModal={handleHideModal} />}
+        </div>
     )
 }
 
