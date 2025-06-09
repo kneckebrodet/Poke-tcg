@@ -1,0 +1,45 @@
+services:
+  backend:
+    build: ./backend
+    container_name: pokedex-backend
+    volumes:
+      - ./backend:/app
+    ports:
+      - "8000:8000"
+    depends_on:
+      - db
+      - redis
+
+  frontend:
+    build: ./frontend
+    container_name: pokedex-frontend
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
+    ports:
+      - "5173:5173"
+    environment:
+      # - VITE_BACK_URL=http://localhost:8000
+      - VITE_BACK_URL=http://192.168.11.10:8000
+
+  db:
+    image: postgres:15
+    container_name: pokedex-db
+    volumes:
+      - postgres_data:/var/lib/postgresql/data/
+    environment:
+      POSTGRES_DB: pokedex
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    ports:
+      - "5432:5432"
+
+  redis:
+    image: redis:7
+    container_name: pokedex-redis
+    ports:
+      - "6379:6379"
+
+
+volumes:
+  postgres_data:

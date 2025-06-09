@@ -1,31 +1,83 @@
-import { Link } from "react-router-dom"
+import { useContext } from "react"
+import { Link, useNavigate } from "react-router-dom"
+import { AuthContext } from "../contexts/AuthContext"
 
 function Navbar() {
-    return (
-        <nav className="block w-[98vw] px-4 py-2 mx-auto text-white bg-white shadow-md rounded-md lg:px-8 lg:py-3">
-            <div className="container flex flex-wrap items-center justify-between mx-auto text-slate-800">
-                <a href="#"
-                    className="mr-4 block cursor-pointer py-1.5 text-base text-slate-800 font-semibold">
-                </a>
-                <div className="hidden lg:block">
-                    <ul className="flex flex-col gap-2 mt-2 mb-4 lg:mb-0 lg:mt-0 lg:flex-row lg:items-center lg:gap-6 pr-[3vw]">
-                        <li
-                            className="flex items-center p-1 text-sm gap-x-2 text-slate-600">
-                                <Link to={"/"} className="flex items-center">
-                                    Pokedex
-                                </Link>
-                        </li>
+    const { isLoggedIn, logout } = useContext(AuthContext)
+    const navigate = useNavigate()
 
-                        <li
-                            className="flex items-center p-1 text-sm gap-x-2 text-slate-600">
-                            <Link to={"/login"} className="flex items-center">
-                                Sign in
-                            </Link>
+    const handleLogout = () => {
+        logout()
+        navigate("/login")
+    }
+
+    const handleMyDeck = () => {
+        if (!isLoggedIn) {
+            logout()
+            navigate("/login")
+        } else {
+            navigate("/decks")
+        }
+    }
+
+    const handleLobby = () => {
+        if (!isLoggedIn) {
+            logout()
+            navigate("/login")
+        } else {
+            navigate("/lobby")
+        }
+    }
+
+    return (
+        <div className="sticky top-0 bg-white border-b border-gray-200 shadow-md/20 text-sm">
+            <div className="flex flex-wrap items-center justify-between px-[2vw] py-2">
+                <Link
+                    to="/"
+                    className="flex items-center gap-2 text-base font-semibold text-slate-800"
+                >
+                    <img src="/pokedex.png" alt="Pokedex Logo" className="w-[3vw]" />
+                </Link>
+                <ul className="flex gap-[4vw] text-slate-600 text-sm">
+                    {isLoggedIn ? (
+                        <>
+                            <li>
+                                <button
+                                    onClick={handleLobby}
+                                    className="italic cursor-pointer bg-transparent border-none p-0 m-0 text-slate-600 hover:text-slate-800"
+                                    type="button"
+                                >
+                                    Lobby
+                                </button>
+                            </li>
+                            <li>
+                                <button
+                                    onClick={handleMyDeck}
+                                    className="italic cursor-pointer bg-transparent border-none p-0 m-0 text-slate-600 hover:text-slate-800"
+                                    type="button"
+                                >
+                                    My Decks
+                                </button>
+                            </li>
+                            <li>
+                                <button
+                                    onClick={handleLogout}
+                                    className="italic cursor-pointer bg-transparent border-none p-0 m-0 text-slate-600 hover:text-slate-800"
+                                    type="button"
+                                >
+                                    Logout
+                                </button>
+                            </li>
+                        </>
+                    ) : (
+                        <li>
+                            <Link to="/login">Sign in</Link>
                         </li>
-                    </ul>
-                </div>
+                    )}
+                </ul>
             </div>
-        </nav>)
+        </div>
+    )
 }
 
 export default Navbar

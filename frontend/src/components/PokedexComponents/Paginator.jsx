@@ -4,9 +4,9 @@ function Paginator({ page, totalPages, onPageChange }) {
     }
 
     return (
-        <div className="flex justify-center items-center gap-[2vw] mb-[4vh]">
+        <div className="flex justify-center items-center gap-[2vw] mt-[2vh] mb-[2vh] h-[5vh]">
             <button
-                className="px-4 py-2 text-sm bg-white border border-gray-500 rounded-md cursor-pointer disabled:opacity-0 disabled:cursor-not-allowed"
+                className="h-[100%] px-[1vw] text-sm bg-white border border-gray-500 rounded-md cursor-pointer disabled:opacity-0 disabled:cursor-default min-h-[20px]"
                 onClick={() => onPageChange(Math.max(page - 1, 1))}
                 disabled={page <= 1}
             >
@@ -16,7 +16,7 @@ function Paginator({ page, totalPages, onPageChange }) {
                 Page {page} of {totalPages}
             </span>
             <button
-                className="px-4 py-2 text-sm bg-white border border-gray-500 rounded-md cursor-pointer disabled:opacity-0 disabled:cursor-not-allowed"
+                className="h-[100%] px-[1vw] text-sm bg-white border border-gray-500 rounded-md cursor-pointer disabled:opacity-0 disabled:cursor-default min-h-[20px]"
                 onClick={() => onPageChange(Math.min(page + 1, totalPages))}
                 disabled={page === totalPages}
             >

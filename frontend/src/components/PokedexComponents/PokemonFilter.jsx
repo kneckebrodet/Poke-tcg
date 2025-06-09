@@ -16,7 +16,10 @@ function PokemonFilter({ onFilterChange }) {
         "ポケモン": "Pokemon",
         "サポート": "Support",
         "グッズ": "Item",
-        "ポケモンのどうぐ": "Tool"
+        "ポケモンのどうぐ": "Tool",
+        "スタジアム": "Stadium",
+        "基本エネルギー": "Energy",
+        "特殊エネルギー": "Special Energy",
     }
 
     const hpTypes = {
@@ -81,7 +84,7 @@ function PokemonFilter({ onFilterChange }) {
     }
 
     return (
-        <div className="flex flex-wrap justify-center gap-3 mb-[4vh]">
+        <div className="flex flex-wrap justify-center gap-3">
             <input
                 className="p-1.5 text-sm border-[0.1em] rounded-[10px] border-gray-500"
                 type="text"
@@ -139,13 +142,13 @@ function PokemonFilter({ onFilterChange }) {
                 onChange={handleChange}
             >
                 {Object.entries(orderingOptions).map(([value, label]) => (
-                    <option key={value} value={value}>
+                    <option key={value} value={value} disabled={notPokemon && value === "hp_num" || notPokemon && value === "-hp_num"}>
                         {label}
                     </option>
                 ))}
             </select>
 
-            <button className="border-1 rounded-[10px] w-[8vw] text-white bg-gradient-to-r from-gray-300 to-gray-400 shadow-lg border-gray-500 hover:cursor-pointer hover:bg-gradient-to-br" onClick={handleReset}>Reset</button>
+            <button className="border-1 rounded-[10px] px-[1vw] text-white bg-gradient-to-r from-blue-400 to-blue-500 shadow-md/30 border-blue-500 hover:cursor-pointer hover:bg-gradient-to-br" onClick={handleReset}>Reset</button>
         </div>
     );
 }

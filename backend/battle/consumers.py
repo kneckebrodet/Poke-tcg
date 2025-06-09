@@ -1,0 +1,105 @@
+import json
+from channels.generic.websocket import AsyncWebsocketConsumer
+from battle.game_state import get_game_state, set_game_state, set_prize_cards
+from battle.utils import shuffle_deck, deal_cards, has_basic_pokemon, get_card_back_view
+from battle.services.handle_game_init import handle_game_init
+
+
+class BattleConsumer(AsyncWebsocketConsumer):
+    async def connect(self):
+        self.user = self.scope["user"]
+        self.battle_id = self.scope["url_route"]["kwargs"]["battle_id"]
+        self.group_name = f"battle_{self.battle_id}"
+
+        if self.user.is_anonymous:
+            await self.close()
+            return
+
+        await self.channel_layer.group_add(self.group_name, self.channel_name)
+        await self.accept()
+
+        # Set channel_name in game state (if already initialized)
+        username = self.user.username
+        try:
+            game = get_game_state(self.battle_id)
+            if username in game["players"]:
+                game["players"][username]["channel_name"] = self.channel_name
+                set_game_state(self.battle_id, game)
+        except:
+            pass  # Game state not initialized yet, nothing to update
+
+    async def disconnect(self, close_code):
+        await self.channel_layer.group_discard(self.group_name, self.channel_name)
+
+    async def receive(self, text_data):
+        data = json.loads(text_data)
+        message_type = data.get("type")
+
+        if message_type == "game_init":
+            await handle_game_init(self, data)
+        elif message_type == "reshuffle":
+            await self.handle_reshuffle()
+        elif message_type == "reshuffle_done":
+            await self.handle_reshuffle_done()
+        elif message_type == "play_card":
+            pass  # To be implemented
+        elif message_type == "end_turn":
+            pass  # To be implemented
+
+    async def initial_hand(self, event):
+        await self.send(text_data=json.dumps({
+            "type": "initial_hand",
+            "yourHand": event["yourHand"],
+            "yourPrize": event["yourPrize"],
+            "hasTane": event["hasTane"],
+            "opponentHand": event["opponentHand"],
+            "opponentPrize": event["opponentPrize"],
+            "opponentTane": event["opponentTane"],
+        }))
+
+    async def handle_reshuffle(self):
+        username = self.user.username
+        game = get_game_state(self.battle_id)
+        player = game["players"].get(username)
+
+        if not player:
+            return
+
+        # 1. Return hand to deck and shuffle
+        player["deck"].extend(player["hand"])
+        deck = shuffle_deck(player["deck"])
+
+        # 2. Deal a new hand
+        new_hand = deal_cards(player["deck"], 7)
+        player["hand"] = new_hand
+
+        # 3. Check for basic Pokémon
+        tane = has_basic_pokemon(new_hand)
+        prize = []
+        if tane:
+            prize = deal_cards(deck, 6)
+            set_prize_cards(self.battle_id, username, prize)
+            game["players"][username]["prize_cards"] = prize
+        
+        set_game_state(self.battle_id, game)
+
+        # 5. Send result to player
+        await self.send(text_data=json.dumps({
+            "type": "reshuffled_hand",
+            "yourHand": new_hand,
+            "yourPrize": get_card_back_view(prize), 
+            "hasTane": tane,
+        }))
+
+    async def handle_reshuffle_done(self):
+        await self.channel_layer.group_send(
+            self.group_name,
+            {
+                "type": "reshuffle_done", 
+            }
+        )
+
+    async def reshuffle_done(self, event):
+        await self.send(text_data=json.dumps({
+            "type": "reshuffle_done"
+        }))
