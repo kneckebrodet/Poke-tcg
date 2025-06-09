@@ -10,6 +10,7 @@ import ActiveRow from '../components/BattleComponents/ActiveRow'
 import BenchRow from '../components/BattleComponents/BenchRow'
 import ReshuffleButton from '../components/BattleComponents/ReshuffleButton'
 import WaitingMessage from '../components/BattleComponents/WaitingMessage'
+import PassButton from '../components/BattleComponents/PassButton'
 
 const WEBSOCKET_URL = "ws://192.168.11.10:8000"
 
@@ -33,6 +34,7 @@ function BattlePage() {
 
     const [hasTane, setHasTane] = useState(null)
     const [waitingForPlayer, setWaitingForPlayer] = useState(false)
+    const [readyState, setReadyState] = useState(false)
 
     // Setup WebSocket
     useEffect(() => {
@@ -97,7 +99,7 @@ function BattlePage() {
                     setWaitingForPlayer(false)
                     console.log("REMOVE WAITING INFO")
                     break
-                    
+
                 default:
                     break
             }
@@ -118,6 +120,33 @@ function BattlePage() {
         }
     }
 
+    const selectStartPokemon = (pokemon) => {
+        if (hasTane && !waitingForPlayer) {
+            const newHand = [...playerOneHand];
+
+            const index = newHand.findIndex(p => p === pokemon);
+
+            if (index !== -1) {
+                newHand.splice(index, 1);
+            }
+
+            if (playerOneActive.length > 0 && pokemon.supertype === "たね") {
+                const newBench = [...playerOneBench, pokemon];
+
+                setPlayerOneHand(newHand);
+                setPlayerOneBench(newBench);
+
+            } else if (pokemon.supertype === "たね") {
+                const newActive = [...playerOneActive, pokemon];
+
+                setPlayerOneHand(newHand);
+                setPlayerOneActive(newActive);
+                setReadyState(true)
+            }
+        }
+    }
+
+
     return (
         <div className="flex flex-col justify-between items-center">
             <div className='flex flex-col justify-between h-[100vh]'>
@@ -129,7 +158,7 @@ function BattlePage() {
                         <TrashPile cards={playerTwoTrash} />
                     </div>
                     <div className='flex flex-col justify-between items-center gap-[1.5vh]'>
-                        <HandRow cards={playerTwoHand} />
+                        <HandRow cards={playerTwoHand} onClick={() => {}} />
                         <BenchRow cards={playerTwoBench} />
                         <ActiveRow cards={playerTwoActive} />
                     </div>
@@ -146,7 +175,7 @@ function BattlePage() {
                     <div className='flex flex-col justify-between items-center gap-[1.5vh]'>
                         <ActiveRow cards={playerOneActive} />
                         <BenchRow cards={playerOneBench} />
-                        <HandRow cards={playerOneHand} />
+                        <HandRow cards={playerOneHand} onClick={selectStartPokemon} />
                     </div>
                     <div className='flex flex-col justify-center items-center gap-[5vh] w-[15vw]'>
                         <DeckPile cards={playerOneDeck} />
@@ -157,6 +186,7 @@ function BattlePage() {
             </div>
             {!hasTane && (<ReshuffleButton onReshuffle={handleReshuffle} />)}
             {hasTane && waitingForPlayer && <WaitingMessage />}
+            {readyState && (<PassButton />)}
         </div>
     )
 }
