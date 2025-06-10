@@ -40,26 +40,24 @@
 
 ### リポジトリのクローン
 ```bash
-git clone https://github.com/your-username/your-repo.git
-cd your-repo
-
+git clone https://github.com/kneckebrodet/Poke-tcg.git
+cd Poke-tcg
+```
 Docker Composeで起動
-bash
-コピーする
-編集する
+```bash
 docker-compose up --build
-バックエンドAPI: http://localhost:8000
-
-フロントエンド: http://localhost:5173
+```
+**バックエンドAPI:** http://localhost:8000
+**フロントエンド:** http://localhost:5173
 
 📝 プロジェクト構成
-bash
-コピーする
-編集する
+```bash
 /backend/     # Djangoバックエンド  
 /frontend/    # Reactフロントエンド  
 /docker-compose.yml
 /.gitignore
+```
+
 ⚙️ 使い方
 ユーザー登録・ログイン
 
@@ -68,19 +66,6 @@ bash
 ロビーで対戦相手とマッチング
 
 ポケモンTCGの対戦（ゲームロジックは順次実装中）
-
-🔮 ロードマップ
-バトルのゲームロジック全実装
-
-フロントエンドUI/UXの改善
-
-Redisのチャネルレイヤーおよびゲームステートへの完全統合
-
-フロントエンドのユーザー登録ページ実装
-
-デッキ削除機能の追加
-
-トークンの有効期限管理とリフレッシュ処理対応
 
 🤝 コントリビューション
 ご意見・ご要望・プルリクエスト大歓迎です！
