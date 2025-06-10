@@ -4,6 +4,14 @@
 フロントエンドはReact、Vite、Tailwind CSS、バックエンドはDjango REST Framework、Django Channels、Redis、PostgreSQLで構築されており、Docker Composeで簡単にローカル開発できます。
 
 ---
+## 📋 プロジェクト管理
+
+機能の追加・バグの修正・リファクタリングなどの作業を管理するために、Issuesとプロジェクトボードを活用しています。
+
+👉 [Issueボードはこちらにあります。](https://github.com/users/kneckebrodet/projects/2)
+
+
+---
 
 ## 🚀 機能（開発中）
 
