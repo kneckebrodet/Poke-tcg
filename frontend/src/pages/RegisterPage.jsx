@@ -1,4 +1,4 @@
-import RegisterForm from "../components/LoginComponents/LoginForm"
+import RegisterForm from "../components/RegisterComponents/RegisterForm"
 import Navbar from "../components/Navbar"
 
 function RegisterPage() {
