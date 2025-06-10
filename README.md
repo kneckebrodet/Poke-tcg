@@ -47,7 +47,7 @@ Docker Composeで起動
 ```bash
 docker-compose up --build
 ```
-**バックエンドAPI:** http://localhost:8000
+**バックエンドAPI:** http://localhost:8000<br>
 **フロントエンド:** http://localhost:5173
 
 📝 プロジェクト構成
@@ -68,8 +68,8 @@ docker-compose up --build
 ポケモンTCGの対戦（ゲームロジックは順次実装中）
 
 🤝 コントリビューション
-ご意見・ご要望・プルリクエスト大歓迎です！
-お気軽にIssueを立ててください。
+<br>ご意見・ご要望・プルリクエスト大歓迎です！
+<br>お気軽にIssueを立ててください。
 
 📄 ライセンス
 
