@@ -2,41 +2,54 @@ from collections import deque
 
 game_states = {}
 
-def init_game(battle_id, player1, player2, deck1, deck2):
+def init_game(battle_id, player1, player2, deck1, deck2, player1_channel, player2_channel):
     game_states[battle_id] = {
         "players": {
             player1: {
                 "deck": deque(deck1),
                 "hand": [],
+                "reshuffles": 0,
                 "bonus_cards": [],
                 "prize_cards": [],
                 "bench": [],
                 "active": None,
                 "trash": [],
+                "channel_name": player1_channel,
                 "is_ready": False,
             },
             player2: {
                 "deck": deque(deck2),
                 "hand": [],
+                "reshuffles": 0,
                 "bonus_cards": [],
                 "prize_cards": [],
                 "bench": [],
                 "active": None,
                 "trash": [],
+                "channel_name": player2_channel,
                 "is_ready": False,
             }
         },
         "turn": player1,
     }
 
-def set_hand(battle_id, player, hand):
+def update_deck(battle_id, player, deck):
+    game_states[battle_id]["players"][player]["deck"] = deck
+
+def set_hand(battle_id, player, hand, deck):
     game_states[battle_id]["players"][player]["hand"] = hand
+    update_deck(battle_id, player, deck)
 
-def set_bonus_cards(battle_id, player, bonus_cards):
+def set_reshuffles(battle_id, player, number_of_reshuffles):
+    game_states[battle_id]["players"][player]["reshuffles"] = number_of_reshuffles
+
+def set_bonus_cards(battle_id, player, bonus_cards, deck):
     game_states[battle_id]["players"][player]["bonus_cards"] = bonus_cards
+    update_deck(battle_id, player, deck)
 
-def set_prize_cards(battle_id, player, prize_cards):
+def set_prize_cards(battle_id, player, prize_cards, deck):
     game_states[battle_id]["players"][player]["prize_cards"] = prize_cards
+    update_deck(battle_id, player, deck)
 
 def set_active_pokemon(battle_id, player, pokemon):
     game_states[battle_id]["players"][player]["active"] = pokemon
@@ -53,7 +66,7 @@ def is_both_ready(battle_id):
             game_states[battle_id]["players"][p2]["is_ready"])
 
 def get_game_state(battle_id):
-    return game_states[battle_id]
+    return game_states.get(battle_id)
 
 def set_game_state(battle_id, new_state):
     game_states[battle_id] = new_state

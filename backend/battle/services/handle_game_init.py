@@ -4,7 +4,8 @@ from battle.services.pending_game_tracker import (
     is_both_players_ready,
     get_ready_players
 )
-from battle.game_init import start_game_server_side
+from battle.game_init import start_game_server_side, format_game_state_for_player
+from battle.game_state import get_game_state
 
 async def handle_game_init(consumer, data):
     player = consumer.user.username
@@ -12,6 +13,16 @@ async def handle_game_init(consumer, data):
     player_deck = data.get("deck")
 
     save_player_init(battle_id, player, consumer.channel_name, player_deck)
+
+    game = get_game_state(battle_id)
+    print("HELLOHELLOOHE")
+    if game:
+        print(f"YES WE FOUND A STATE!!!!")
+        await consumer.send(text_data=json.dumps({
+            "type": "recover_game_state",
+            "gameState": format_game_state_for_player(game, player),
+        }))
+        return
 
     if not is_both_players_ready(battle_id):
         await consumer.send(text_data=json.dumps({

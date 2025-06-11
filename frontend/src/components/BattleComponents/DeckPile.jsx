@@ -1,14 +1,24 @@
 import PokemonCard from '../PokedexComponents/PokemonCard';
 
+
 function DeckPile({ cards }) {
     return (
-        <div className="grid grid-cols-1 w-[6vw]">
-            {cards.map((card, index) => (
-                <PokemonCard
+        <div className="relative w-[10vw]">
+            {cards?.map((card, index) => (
+                <div
                     key={index}
-                    pokemon={card}
-                    onClick={() => {}}
-                />
+                    className="absolute"
+                    style={{
+                        bottom: `${index * 0.3}px`,    // vertical offset
+                        left: `${index * 0.2}px`,   // horizontal offset
+                        zIndex: index,            // ensure last cards on top
+                    }}
+                >
+                    <PokemonCard
+                        pokemon={card}
+                        onClick={() => {}}
+                    />
+                </div>
             ))}
         </div>
     );

@@ -1,50 +1,60 @@
-from .utils import shuffle_deck, deal_cards, get_card_back_view, has_basic_pokemon
-from .game_state import init_game, set_hand, get_game_state, set_game_state, set_prize_cards, set_bonus_cards
+from .utils import shuffle_deck, pop_cards, reshuffle_for_tane, has_basic_pokemon
+from .game_state import init_game, update_deck, set_hand, set_reshuffles, get_game_state, set_prize_cards, set_bonus_cards
 from battle.utils import format_game_state_for_player
 
 async def start_game_server_side(channel_layer, battle_id, player_one, player_two, player_one_deck, player_two_deck, player_one_channel, player_two_channel):
+    # Shuffle players decks
     p1_deck = shuffle_deck(player_one_deck["cards"])
     p2_deck = shuffle_deck(player_two_deck["cards"])
+
+    # create a new game using battle id + players + decks
+    init_game(battle_id, player_one, player_two, p1_deck, p2_deck, player_one_channel, player_two_channel)
     
-    p1_hand = deal_cards(p1_deck, 7)
-    p2_hand = deal_cards(p2_deck, 7)
+    # initialize p1 hand and update deck
+    p1_hand = pop_cards(p1_deck, 7) # deck => 53x cards
+    set_hand(battle_id, player_one, p1_hand, p1_deck)
+    update_deck(battle_id, player_one, p1_deck)
 
-    init_game(battle_id, player_one, player_two, p1_deck, p2_deck)
-    set_hand(battle_id, player_one, p1_hand)
-    set_hand(battle_id, player_two, p2_hand)
+    # initialize p2 hand and update deck
+    p2_hand = pop_cards(p2_deck, 7) # deck => 53x cards
+    set_hand(battle_id, player_two, p2_hand, p2_deck)
+    update_deck(battle_id, player_two, p2_deck)
 
+    # reshuffle if no basic pokemon in hand
+    if not has_basic_pokemon(p1_hand):
+        p1_deck, p1_hand, p1_reshuffles = reshuffle_for_tane(p1_deck, p1_hand)
+        set_hand(battle_id, player_one, p1_hand, p1_deck) 
+        set_reshuffles(battle_id, player_one, p1_reshuffles)
+    if not has_basic_pokemon(p2_hand):
+        p2_deck, p2_hand, p2_reshuffles = reshuffle_for_tane(p2_deck, p2_hand)
+        set_hand(battle_id, player_two, p2_hand, p2_deck) 
+        set_reshuffles(battle_id, player_two, p2_reshuffles)
+
+    # set prize cards for each player
+    p1_prize = pop_cards(p1_deck, 6)
+    set_prize_cards(battle_id, player_one, p1_prize, p1_deck)
+    p2_prize = pop_cards(p2_deck, 6)
+    set_prize_cards(battle_id, player_two, p2_prize, p2_deck)
+
+    # set bonus cards for each player
     game = get_game_state(battle_id)
-    game["players"][player_one]["channel_name"] = player_one_channel
-    game["players"][player_two]["channel_name"] = player_two_channel
-    set_game_state(battle_id, game)
+    p1_number_of_bonus_cards = game["players"][player_two]["reshuffles"]
+    p1_bonus_cards = pop_cards(p1_deck, p1_number_of_bonus_cards)
+    set_bonus_cards(battle_id, player_one, p1_bonus_cards, p1_deck)
 
-    # Check for tane
-    p1_tane = has_basic_pokemon(p1_hand)
-    p2_tane = has_basic_pokemon(p2_hand)
-    p1_prize = []
-    p2_prize = []
+    p2_number_of_bonus_cards = game["players"][player_one]["reshuffles"]
+    p2_bonus_cards = pop_cards(p2_deck, p2_number_of_bonus_cards)
+    set_bonus_cards(battle_id, player_two, p2_bonus_cards, p2_deck)
 
-    if p1_tane:
-        p1_prize = deal_cards(p1_deck, 6)
-        set_prize_cards(battle_id, player_one, p1_prize)
-        game["players"][player_one]["deck"] = p1_deck
-    if p2_tane:
-        p2_prize = deal_cards(p2_deck, 6)
-        set_prize_cards(battle_id, player_two, p2_prize)
-        game["players"][player_two]["deck"] = p2_deck
-    
-    set_game_state(battle_id, game)
+    p1_game_state = format_game_state_for_player(game, player_one)
+    p2_game_state = format_game_state_for_player(game, player_two)
 
     await channel_layer.send(player_one_channel, {
         "type": "initial_hand",
-        "game": game,
-        "hasTane": p1_tane,
-        "opponentTane": p2_tane,
+        "game": p1_game_state,
     })
 
     await channel_layer.send(player_two_channel, {
         "type": "initial_hand",
-        "game": game,
-        "hasTane": p2_tane,
-        "opponentTane": p1_tane,
+        "game": p2_game_state,
     })

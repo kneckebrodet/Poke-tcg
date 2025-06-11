@@ -1,7 +1,6 @@
 import json
 from channels.generic.websocket import AsyncWebsocketConsumer
-from battle.game_state import get_game_state, set_game_state, set_prize_cards
-from battle.utils import shuffle_deck, deal_cards, has_basic_pokemon, get_card_back_view
+from battle.game_state import get_game_state, set_game_state
 from battle.services.handle_game_init import handle_game_init
 
 
@@ -37,25 +36,12 @@ class BattleConsumer(AsyncWebsocketConsumer):
 
         if message_type == "game_init":
             await handle_game_init(self, data)
-        elif message_type == "reshuffle":
-            await self.handle_reshuffle()
-        elif message_type == "reshuffle_done":
-            await self.handle_reshuffle_done()
-        elif message_type == "play_card":
-            pass  # To be implemented
-        elif message_type == "end_turn":
-            pass  # To be implemented
 
     async def initial_hand(self, event):
-        from battle.utils import format_game_state_for_player
-
-        game_state_payload = format_game_state_for_player(event["game"], self.user.username)
 
         await self.send(text_data=json.dumps({
             "type": "initial_game_state",
-            "gameState": game_state_payload,
-            "hasTane": event["hasTane"],
-            "opponentTane": event["opponentTane"]
+            "gameState": event["game"],
         }))
 
 
