@@ -2,7 +2,6 @@ import { jwtDecode } from "jwt-decode"
 import { REFRESH_TOKEN, ACCESS_TOKEN } from "../../constants"
 import axios from "axios"
 
-
 export const clearSession = () => {
     localStorage.removeItem(ACCESS_TOKEN)
     localStorage.removeItem(REFRESH_TOKEN)
@@ -11,8 +10,11 @@ export const clearSession = () => {
 }
 
 export const refreshToken = async () => {
-    let refresh = localStorage.getItem(REFRESH_TOKEN) || sessionStorage.getItem(REFRESH_TOKEN)
-    if (!refresh) return null
+    const refresh = localStorage.getItem(REFRESH_TOKEN) || sessionStorage.getItem(REFRESH_TOKEN)
+    if (!refresh) {
+        clearSession()
+        return null
+    }
 
     try {
         const res = await axios.post(`${import.meta.env.VITE_BACK_URL}/api/token/refresh/`, { refresh })
@@ -22,9 +24,6 @@ export const refreshToken = async () => {
             return res.data.access
         }
     } catch (err) {
-        if (err.response && err.response.status === 401) {
-            console.error("No permission. [401]")
-        }
         console.error("Token refresh failed:", err)
     }
 

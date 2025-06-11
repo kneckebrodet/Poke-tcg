@@ -92,7 +92,7 @@ function CreateDeckPage() {
 
             setDeck([])
             setDeckName("")
-            navigate("/decks") //, { state: { shouldRefresh: true } })
+            navigate("/decks")
 
         } catch (error) {
             console.error("Deck save failed:", error)

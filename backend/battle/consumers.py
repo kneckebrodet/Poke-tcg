@@ -47,59 +47,15 @@ class BattleConsumer(AsyncWebsocketConsumer):
             pass  # To be implemented
 
     async def initial_hand(self, event):
+        from battle.utils import format_game_state_for_player
+
+        game_state_payload = format_game_state_for_player(event["game"], self.user.username)
+
         await self.send(text_data=json.dumps({
-            "type": "initial_hand",
-            "yourHand": event["yourHand"],
-            "yourPrize": event["yourPrize"],
+            "type": "initial_game_state",
+            "gameState": game_state_payload,
             "hasTane": event["hasTane"],
-            "opponentHand": event["opponentHand"],
-            "opponentPrize": event["opponentPrize"],
-            "opponentTane": event["opponentTane"],
+            "opponentTane": event["opponentTane"]
         }))
 
-    async def handle_reshuffle(self):
-        username = self.user.username
-        game = get_game_state(self.battle_id)
-        player = game["players"].get(username)
 
-        if not player:
-            return
-
-        # 1. Return hand to deck and shuffle
-        player["deck"].extend(player["hand"])
-        deck = shuffle_deck(player["deck"])
-
-        # 2. Deal a new hand
-        new_hand = deal_cards(player["deck"], 7)
-        player["hand"] = new_hand
-
-        # 3. Check for basic Pokémon
-        tane = has_basic_pokemon(new_hand)
-        prize = []
-        if tane:
-            prize = deal_cards(deck, 6)
-            set_prize_cards(self.battle_id, username, prize)
-            game["players"][username]["prize_cards"] = prize
-        
-        set_game_state(self.battle_id, game)
-
-        # 5. Send result to player
-        await self.send(text_data=json.dumps({
-            "type": "reshuffled_hand",
-            "yourHand": new_hand,
-            "yourPrize": get_card_back_view(prize), 
-            "hasTane": tane,
-        }))
-
-    async def handle_reshuffle_done(self):
-        await self.channel_layer.group_send(
-            self.group_name,
-            {
-                "type": "reshuffle_done", 
-            }
-        )
-
-    async def reshuffle_done(self, event):
-        await self.send(text_data=json.dumps({
-            "type": "reshuffle_done"
-        }))
