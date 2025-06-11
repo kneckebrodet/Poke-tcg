@@ -1,10 +1,10 @@
 import PokemonCard from '../PokedexComponents/PokemonCard';
 
-function BenchRow({ cards, length=5 }) {
-    const gridColsClass = `grid-cols-${length}`;
+function BenchRow({ cards }) {
+    const gridColsClass = `grid max-w-[75vw] min-w-[1vw] min-h-[1vh] gap-2 grid-cols-${cards.length}`;
     return (
-        <div className={`grid max-w-[75vw] min-w-[1vw] min-h-[1vh] gap-2 ${gridColsClass}`}>
-            {cards.map((card, index) => (
+        <div className={gridColsClass}>
+            {cards?.map((card, index) => (
                 <PokemonCard
                     key={index}
                     pokemon={card}

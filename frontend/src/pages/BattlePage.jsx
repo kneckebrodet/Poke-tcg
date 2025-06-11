@@ -1,7 +1,6 @@
-import { useContext, useEffect, useRef, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useGame } from '../contexts/BattleContext'
 import { ACCESS_TOKEN } from '../../constants'
-import { animateHands } from '../utils/animateHands'
 import ReshuffleButton from '../components/BattleComponents/ReshuffleButton'
 import WaitingMessage from '../components/BattleComponents/WaitingMessage'
 import PassButton from '../components/BattleComponents/PassButton'
@@ -35,10 +34,6 @@ function BattlePage() {
         // maybe some global flags like turn, phase, etc.
     })
 
-
-    const [hasTane, setHasTane] = useState(null)
-    const [waitingForPlayer, setWaitingForPlayer] = useState(false)
-
     // Setup WebSocket
     useEffect(() => {
         const token = localStorage.getItem(ACCESS_TOKEN) || sessionStorage.getItem(ACCESS_TOKEN)
@@ -62,22 +57,59 @@ function BattlePage() {
             switch (data.type) {
                 case "initial_game_state": {
                     console.log("Initial game state received:", data);
+                    const gameStateFromServer = data.gameState
 
-                    const { gameState: serverGameState, hasTane, opponentTane } = data;
+                    // Set game state based on backend response
+                    setGameState({
+                        playerOne: {
+                            hand: gameStateFromServer.playerOne.hand,
+                            bench: gameStateFromServer.playerOne.bench,
+                            active: gameStateFromServer.playerOne.active,
+                            prize: gameStateFromServer.playerOne.prize,
+                            deck: gameStateFromServer.playerOne.deck,
+                            trash: gameStateFromServer.playerOne.trash,
+                        },
+                        playerTwo: {
+                            hand: gameStateFromServer.playerTwo.hand,
+                            bench: gameStateFromServer.playerTwo.bench,
+                            active: gameStateFromServer.playerTwo.active,
+                            prize: gameStateFromServer.playerTwo.prize,
+                            deck: gameStateFromServer.playerTwo.deck,
+                            trash: gameStateFromServer.playerTwo.trash,
+                        },
+                        turn: gameStateFromServer.turn,
+                    });
 
-                    if (!serverGameState?.playerOne || !serverGameState?.playerTwo) {
-                        console.error("Invalid gameState structure:", data);
-                        break;
-                    }
 
-                    setGameState(serverGameState);
-                    setHasTane(hasTane);
+                    break
+                }
 
-                    if (!opponentTane) {
-                        setWaitingForPlayer(true);
-                    }
+                case "recover_game_state": {
+                    console.log("Initial game state received:", data);
+                    const recoveredGameStateFromServer = data.gameState
 
-                    break;
+                    setGameState({
+                        playerOne: {
+                            hand: recoveredGameStateFromServer.playerOne.hand,
+                            bench: recoveredGameStateFromServer.playerOne.bench,
+                            active: recoveredGameStateFromServer.playerOne.active,
+                            prize: recoveredGameStateFromServer.playerOne.prize,
+                            deck: recoveredGameStateFromServer.playerOne.deck,
+                            trash: recoveredGameStateFromServer.playerOne.trash,
+                        },
+                        playerTwo: {
+                            hand: recoveredGameStateFromServer.playerTwo.hand,
+                            bench: recoveredGameStateFromServer.playerTwo.bench,
+                            active: recoveredGameStateFromServer.playerTwo.active,
+                            prize: recoveredGameStateFromServer.playerTwo.prize,
+                            deck: recoveredGameStateFromServer.playerTwo.deck,
+                            trash: recoveredGameStateFromServer.playerTwo.trash,
+                        },
+                        turn: recoveredGameStateFromServer.turn,
+                    });
+
+
+                    break
                 }
 
                 default:
@@ -85,20 +117,12 @@ function BattlePage() {
             }
         }
 
+
         socket.onerror = (e) => console.error("Battle socket error:", e)
         socket.onclose = () => console.log("Battle socket closed")
 
         return () => socket.close()
-    }, [battleID])
-
-    const handleReshuffle = () => {
-        console.log("Reshuffling...")
-        if (socketRef.current && socketRef.current.readyState === WebSocket.OPEN) {
-            socketRef.current.send(JSON.stringify({
-                type: "reshuffle"
-            }))
-        }
-    }
+    }, [])
 
     return (
         <div className="flex flex-col justify-between items-center">
@@ -131,8 +155,8 @@ function BattlePage() {
                 />
 
             </div>
-            {!hasTane && (<ReshuffleButton onReshuffle={handleReshuffle} />)}
-            {hasTane && waitingForPlayer && <WaitingMessage />}
+            {/* {!hasTane && (<ReshuffleButton onReshuffle={handleReshuffle} />)} */}
+            {/* {hasTane && waitingForPlayer && <WaitingMessage />} */}
             {/* {readyState && (<PassButton />)} */}
         </div>
     )

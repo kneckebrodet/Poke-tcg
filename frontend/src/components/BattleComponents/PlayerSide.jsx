@@ -10,7 +10,7 @@ function PlayerSide({ data, onPrizeClick, onHandClick, onBenchClick, onActiveCli
     // Opponent side layout mirrored:
     return (
       <div className='flex justify-center gap-[10vw] border-2 h-[50%] bg-red-400'>
-        <div className='flex flex-col justify-center items-center w-[15vw] gap-[5vh]'>
+        <div className='flex flex-col justify-center items-center gap-[5vh] w-[15vw]'>
           <DeckPile cards={data.deck} onClick={onDeckClick} />
           <TrashPile cards={data.trash} onClick={onTrashClick} />
         </div>
