@@ -20,7 +20,8 @@ services:
       - "5173:5173"
     environment:
       # - VITE_BACK_URL=http://localhost:8000
-      - VITE_BACK_URL=http://192.168.11.10:8000
+      # - VITE_BACK_URL=http://192.168.11.10:8000
+      - VITE_BACK_URL=http://192.168.3.14:8000
 
   db:
     image: postgres:15

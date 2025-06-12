@@ -7,7 +7,7 @@ import WaitingMessage from '../components/BattleComponents/WaitingMessage'
 import PassButton from '../components/BattleComponents/PassButton'
 import PlayerSide from '../components/BattleComponents/PlayerSide'
 
-const WEBSOCKET_URL = "ws://192.168.11.10:8000"
+const WEBSOCKET_URL = `ws://${import.meta.env.VITE_BACK_URL.split('://')[1]}`
 
 function BattlePage() {
     const { battleID, yourDeck } = useGame()
