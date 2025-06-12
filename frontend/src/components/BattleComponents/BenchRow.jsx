@@ -1,14 +1,13 @@
 import PokemonCard from '../PokedexComponents/PokemonCard';
 
-function BenchRow({ cards }) {
-    const gridColsClass = `grid max-w-[75vw] min-w-[1vw] min-h-[1vh] gap-2 grid-cols-${cards.length}`;
+function BenchRow({ cards, onClick }) {
     return (
-        <div className={gridColsClass}>
+        <div className={"grid max-w-[75vw] min-w-[1vw] min-h-[1vh] gap-2 grid-cols-5 bg-red-500"}>
             {cards?.map((card, index) => (
                 <PokemonCard
                     key={index}
                     pokemon={card}
-                    onClick={() => {}}
+                    onClick={() => onClick(card)}
                 />
             ))}
         </div>

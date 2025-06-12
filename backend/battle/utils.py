@@ -15,16 +15,17 @@ def get_card_back_view(cards):
     return [{**card, "image_url": card_back_url} for card in cards]
 
 def reshuffle_for_tane(deck, hand):
-    has_tane = has_basic_pokemon(hand) 
     reshuffles = 0
-    while not has_tane:
+    failed_hands = []
+
+    while not has_basic_pokemon(hand):
         reshuffles += 1
+        failed_hands.append(hand[:]) # add a copy of the failed hand to display at frontend
         deck += hand
         deck = shuffle_deck(deck)
         hand = pop_cards(deck, 7)
-        has_tane = has_basic_pokemon(hand)
 
-    return deck, hand, reshuffles
+    return deck, hand, reshuffles, failed_hands
 
 def format_game_state_for_player(game, player):
     opponent = [p for p in game["players"] if p != player][0]
@@ -33,6 +34,7 @@ def format_game_state_for_player(game, player):
 
     return {
         "turn": game["turn"], 
+        "phase": game["phase"],
         "playerOne": {
             "hand": player["hand"],
             "bench": player["bench"],
@@ -42,6 +44,7 @@ def format_game_state_for_player(game, player):
             "trash": get_card_back_view(player["trash"]),
             "bonus_cards": player.get("bonus_cards", []),
             "reshuffles": player.get("reshuffles", 0),
+            "failed_hands": player.get("failed_hands", []),
         },
         "playerTwo": {
             "hand": get_card_back_view(opponent_player["hand"]),
@@ -52,5 +55,6 @@ def format_game_state_for_player(game, player):
             "trash": opponent_player["trash"],
             "bonus_cards": opponent_player.get("bonus_cards", []),
             "reshuffles": opponent_player.get("reshuffles", 0),
+            "failed_hands": opponent_player.get("failed_hands", []),
         }
     }

@@ -1,10 +1,11 @@
 import { useEffect, useRef, useState } from 'react'
 import { useGame } from '../contexts/BattleContext'
 import { ACCESS_TOKEN } from '../../constants'
+import GamePhase from '../utils/GamePhase'
 import ReshuffleButton from '../components/BattleComponents/ReshuffleButton'
 import WaitingMessage from '../components/BattleComponents/WaitingMessage'
 import PassButton from '../components/BattleComponents/PassButton'
-import PlayerSide from '../components/BattleComponents/playerSide'
+import PlayerSide from '../components/BattleComponents/PlayerSide'
 
 const WEBSOCKET_URL = "ws://192.168.11.10:8000"
 
@@ -20,7 +21,7 @@ function BattlePage() {
             prize: [],
             deck: [],
             trash: [],
-            // ... other playerOne data
+            bonus_cards: [],
         },
         playerTwo: {
             hand: [],
@@ -29,9 +30,10 @@ function BattlePage() {
             prize: [],
             deck: [],
             trash: [],
-            // ... other playerTwo data
+            bonus_cards: [],
         },
-        // maybe some global flags like turn, phase, etc.
+        turn: "",
+        phase: "",
     })
 
     // Setup WebSocket
@@ -53,70 +55,31 @@ function BattlePage() {
 
         socket.onmessage = (event) => {
             const data = JSON.parse(event.data)
+            console.log(data)
 
             switch (data.type) {
-                case "initial_game_state": {
-                    console.log("Initial game state received:", data);
+                case "initial_game_state":
+                case "recover_game_state": {
                     const gameStateFromServer = data.gameState
 
-                    // Set game state based on backend response
+                    // for testing the trash pile visuals
+                    gameStateFromServer.playerOne.trash = [...gameStateFromServer.playerOne.deck]
+                    gameStateFromServer.playerTwo.trash = [...gameStateFromServer.playerTwo.deck]
+
                     setGameState({
-                        playerOne: {
-                            hand: gameStateFromServer.playerOne.hand,
-                            bench: gameStateFromServer.playerOne.bench,
-                            active: gameStateFromServer.playerOne.active,
-                            prize: gameStateFromServer.playerOne.prize,
-                            deck: gameStateFromServer.playerOne.deck,
-                            trash: gameStateFromServer.playerOne.trash,
-                        },
-                        playerTwo: {
-                            hand: gameStateFromServer.playerTwo.hand,
-                            bench: gameStateFromServer.playerTwo.bench,
-                            active: gameStateFromServer.playerTwo.active,
-                            prize: gameStateFromServer.playerTwo.prize,
-                            deck: gameStateFromServer.playerTwo.deck,
-                            trash: gameStateFromServer.playerTwo.trash,
-                        },
+                        playerOne: { ...gameStateFromServer.playerOne },
+                        playerTwo: { ...gameStateFromServer.playerTwo },
                         turn: gameStateFromServer.turn,
+                        phase: gameStateFromServer.phase
                     });
 
-
-                    break
+                    if (gameStateFromServer.phase === GamePhase.SETUP) {
+                        console.log("We're in the SETUP state")
+                    }
+                    break;
                 }
-
-                case "recover_game_state": {
-                    console.log("Initial game state received:", data);
-                    const recoveredGameStateFromServer = data.gameState
-
-                    setGameState({
-                        playerOne: {
-                            hand: recoveredGameStateFromServer.playerOne.hand,
-                            bench: recoveredGameStateFromServer.playerOne.bench,
-                            active: recoveredGameStateFromServer.playerOne.active,
-                            prize: recoveredGameStateFromServer.playerOne.prize,
-                            deck: recoveredGameStateFromServer.playerOne.deck,
-                            trash: recoveredGameStateFromServer.playerOne.trash,
-                        },
-                        playerTwo: {
-                            hand: recoveredGameStateFromServer.playerTwo.hand,
-                            bench: recoveredGameStateFromServer.playerTwo.bench,
-                            active: recoveredGameStateFromServer.playerTwo.active,
-                            prize: recoveredGameStateFromServer.playerTwo.prize,
-                            deck: recoveredGameStateFromServer.playerTwo.deck,
-                            trash: recoveredGameStateFromServer.playerTwo.trash,
-                        },
-                        turn: recoveredGameStateFromServer.turn,
-                    });
-
-
-                    break
-                }
-
-                default:
-                    break
             }
         }
-
 
         socket.onerror = (e) => console.error("Battle socket error:", e)
         socket.onclose = () => console.log("Battle socket closed")
@@ -126,7 +89,7 @@ function BattlePage() {
 
     return (
         <div className="flex flex-col justify-between items-center">
-            <div className='flex flex-col justify-between h-[100vh]'>
+            <div className='flex flex-col justify-between h-[100vh] w-[100%]'>
 
                 <PlayerSide
                     data={gameState["playerTwo"]}

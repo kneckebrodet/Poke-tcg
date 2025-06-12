@@ -1,4 +1,17 @@
 from collections import deque
+from enum import Enum
+
+class GamePhase(Enum):
+    SETUP = "setup"  # Initial draw + active/bench selection
+    MULLIGAN_CHECK = "mulligan_check"
+    COINFLIP = "coinflip"
+    SELECT_PRIZE = "select_prize"
+    SELECT_ACTIVE = "select_active"
+    SELECT_BENCH = "select_bench"
+    MAIN_PHASE = "main_phase"
+    ATTACK_PHASE = "attack_phase"
+    END_TURN = "end_turn"
+    GAME_OVER = "game_over"
 
 game_states = {}
 
@@ -9,6 +22,7 @@ def init_game(battle_id, player1, player2, deck1, deck2, player1_channel, player
                 "deck": deque(deck1),
                 "hand": [],
                 "reshuffles": 0,
+                "failed_hands": [],
                 "bonus_cards": [],
                 "prize_cards": [],
                 "bench": [],
@@ -21,6 +35,7 @@ def init_game(battle_id, player1, player2, deck1, deck2, player1_channel, player
                 "deck": deque(deck2),
                 "hand": [],
                 "reshuffles": 0,
+                "failed_hands": [],
                 "bonus_cards": [],
                 "prize_cards": [],
                 "bench": [],
@@ -31,6 +46,7 @@ def init_game(battle_id, player1, player2, deck1, deck2, player1_channel, player
             }
         },
         "turn": player1,
+        "phase": GamePhase.SETUP.value,
     }
 
 def update_deck(battle_id, player, deck):
@@ -42,6 +58,9 @@ def set_hand(battle_id, player, hand, deck):
 
 def set_reshuffles(battle_id, player, number_of_reshuffles):
     game_states[battle_id]["players"][player]["reshuffles"] = number_of_reshuffles
+
+def set_failed_hands(battle_id, player, failed_hands):
+    game_states[battle_id]["players"][player]["failed_hands"] = failed_hands 
 
 def set_bonus_cards(battle_id, player, bonus_cards, deck):
     game_states[battle_id]["players"][player]["bonus_cards"] = bonus_cards

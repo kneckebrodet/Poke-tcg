@@ -1,9 +1,8 @@
 import PokemonCard from '../PokedexComponents/PokemonCard';
 
 function HandRow({ cards, onClick }) {
-    let gridColsClass = `grid max-w-[75vw] gap-1 grid-cols-${cards.length}`;
     return (
-        <div className={gridColsClass}>
+        <div className={"grid w-[45vw] bg-green-500 grid-cols-7"}>
             {cards?.map((card, index) => (
                 <PokemonCard
                     key={index}

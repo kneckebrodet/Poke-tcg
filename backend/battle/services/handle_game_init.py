@@ -15,9 +15,7 @@ async def handle_game_init(consumer, data):
     save_player_init(battle_id, player, consumer.channel_name, player_deck)
 
     game = get_game_state(battle_id)
-    print("HELLOHELLOOHE")
     if game:
-        print(f"YES WE FOUND A STATE!!!!")
         await consumer.send(text_data=json.dumps({
             "type": "recover_game_state",
             "gameState": format_game_state_for_player(game, player),
