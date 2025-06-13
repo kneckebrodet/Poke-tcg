@@ -5,7 +5,7 @@ import { useNavigate } from 'react-router-dom';
 import { useGame } from '../contexts/BattleContext';
 import Navbar from "../components/Navbar"
 
-const WEBSOCKET_URL = "ws://192.168.11.10:8000"
+const WEBSOCKET_URL = `ws://${import.meta.env.VITE_BACK_URL.split('://')[1]}`
 
 function LobbyPage() {
     const {
