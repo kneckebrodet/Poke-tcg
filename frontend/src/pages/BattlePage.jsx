@@ -62,10 +62,6 @@ function BattlePage() {
                 case "recover_game_state": {
                     const gameStateFromServer = data.gameState
 
-                    // for testing the trash pile visuals
-                    gameStateFromServer.playerOne.trash = [...gameStateFromServer.playerOne.deck]
-                    gameStateFromServer.playerTwo.trash = [...gameStateFromServer.playerTwo.deck]
-
                     setGameState({
                         playerOne: { ...gameStateFromServer.playerOne },
                         playerTwo: { ...gameStateFromServer.playerTwo },
@@ -87,9 +83,10 @@ function BattlePage() {
         return () => socket.close()
     }, [])
 
+
     return (
         <div className="flex flex-col justify-between items-center">
-            <div className='flex flex-col justify-between h-[100vh] w-[100%]'>
+            <div className='flex flex-col justify-between h-[100vh] w-[100%] overflow-hidden'>
 
                 <PlayerSide
                     data={gameState["playerTwo"]}

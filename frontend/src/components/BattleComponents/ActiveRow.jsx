@@ -8,6 +8,7 @@ function ActiveRow({ cards }) {
                     key={index}
                     pokemon={card}
                     onClick={() => {}}
+                    className='w-[4.5vw]'
                 />
             ))}
         </div>
