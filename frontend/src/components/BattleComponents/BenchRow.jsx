@@ -8,6 +8,7 @@ function BenchRow({ cards, onClick }) {
                     key={index}
                     pokemon={card}
                     onClick={() => onClick(card)}
+                    className='w-[4.5vw]'
                 />
             ))}
         </div>
