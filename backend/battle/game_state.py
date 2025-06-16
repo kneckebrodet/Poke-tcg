@@ -26,7 +26,7 @@ def init_game(battle_id, player1, player2, deck1, deck2, player1_channel, player
                 "bonus_cards": [],
                 "prize_cards": [],
                 "bench": [],
-                "active": None,
+                "active": [],
                 "trash": [],
                 "channel_name": player1_channel,
                 "is_ready": False,
@@ -39,13 +39,14 @@ def init_game(battle_id, player1, player2, deck1, deck2, player1_channel, player
                 "bonus_cards": [],
                 "prize_cards": [],
                 "bench": [],
-                "active": None,
+                "active": [],
                 "trash": [],
                 "channel_name": player2_channel,
                 "is_ready": False,
             }
         },
-        "turn": player1,
+        "turn_order": [player1, player2],
+        "current_turn_index": 0,
         "phase": GamePhase.SETUP.value,
     }
 
@@ -55,9 +56,6 @@ def update_deck(battle_id, player, deck):
 def set_hand(battle_id, player, hand, deck):
     game_states[battle_id]["players"][player]["hand"] = hand
     update_deck(battle_id, player, deck)
-
-def set_reshuffles(battle_id, player, number_of_reshuffles):
-    game_states[battle_id]["players"][player]["reshuffles"] = number_of_reshuffles
 
 def set_failed_hands(battle_id, player, failed_hands):
     game_states[battle_id]["players"][player]["failed_hands"] = failed_hands 

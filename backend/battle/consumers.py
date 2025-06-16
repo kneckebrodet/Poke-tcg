@@ -1,7 +1,7 @@
 import json
 from channels.generic.websocket import AsyncWebsocketConsumer
 from battle.game_state import get_game_state, set_game_state
-from battle.services.handle_game_init import handle_game_init
+from battle.services.handle_game_init import handle_game_init, handle_reshuffle, handle_draw_bonus_cards, handle_select_active
 
 
 class BattleConsumer(AsyncWebsocketConsumer):
@@ -36,12 +36,28 @@ class BattleConsumer(AsyncWebsocketConsumer):
 
         if message_type == "game_init":
             await handle_game_init(self, data)
+        if message_type == "reshuffle":
+            await handle_reshuffle(self)
+        if message_type == "draw_bonus_cards":
+            await handle_draw_bonus_cards(self, data)
+        if message_type == "active_selected":
+            await handle_select_active(self, data)
+            print(f"Self: {self}, Data: {data}")
 
     async def initial_hand(self, event):
-
         await self.send(text_data=json.dumps({
             "type": "initial_game_state",
             "gameState": event["game"],
         }))
 
+    async def bonus_cards_dealt(self, event):
+        await self.send(text_data=json.dumps({
+            "type": "bonus_cards_dealt",
+            "gameState": event["game"]
+        }))
 
+    async def active_selected(self, event):
+        await self.send(text_data=json.dumps({
+            "type": "active_selected",
+            "gameState": event["game"]
+        }))

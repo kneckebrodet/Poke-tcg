@@ -17,7 +17,7 @@ function HandRow({ cards, onClick, isOpponent = false }) {
     } 
 
     return (
-        <div className="relative flex justify-center bg-purple-500 w-full overflow-visible">
+        <div className="relative flex justify-center w-full overflow-visible">
             {cards?.map((card, index) => (
                 <div
                     key={index}

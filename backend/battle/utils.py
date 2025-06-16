@@ -1,4 +1,5 @@
 import random
+from battle.game_state import GamePhase
 
 def shuffle_deck(deck):
     random.shuffle(deck)
@@ -25,36 +26,46 @@ def reshuffle_for_tane(deck, hand):
         deck = shuffle_deck(deck)
         hand = pop_cards(deck, 7)
 
-    return deck, hand, reshuffles, failed_hands
+    return deck, hand, failed_hands
 
 def format_game_state_for_player(game, player):
     opponent = [p for p in game["players"] if p != player][0]
     player = game["players"][player]
     opponent_player = game["players"][opponent]
 
+    # check if ready for active pokemon selection
+    p1_is_ready = (len(player["failed_hands"]) == player["reshuffles"]) and (len(opponent_player["failed_hands"]) == 0 or len(player["bonus_cards"]) > 0)
+    p2_is_ready = (len(opponent_player["failed_hands"]) == opponent_player["reshuffles"]) and (len(player["failed_hands"]) == 0 or len(opponent_player["bonus_cards"]) > 0)
+
+    if p1_is_ready and p2_is_ready:
+        if game["phase"] == GamePhase.SETUP.value:
+            game["phase"] = GamePhase.SELECT_ACTIVE.value
+
     return {
         "turn": game["turn"], 
         "phase": game["phase"],
         "playerOne": {
-            "hand": player["hand"],
-            "bench": player["bench"],
+            "hand": player["hand"] or [],
+            "bench": player["bench"] or [],
             "active": player["active"] or [],
             "prize": get_card_back_view(player["prize_cards"]),
             "deck": get_card_back_view(player["deck"]),
-            "trash": get_card_back_view(player["trash"]),
+            "trash": get_card_back_view(player["trash"]) or [],
             "bonus_cards": player.get("bonus_cards", []),
             "reshuffles": player.get("reshuffles", 0),
             "failed_hands": player.get("failed_hands", []),
+            "is_ready": p1_is_ready,
         },
         "playerTwo": {
-            "hand": get_card_back_view(opponent_player["hand"]),
-            "bench": opponent_player["bench"],
-            "active": opponent_player["active"],
+            "hand": get_card_back_view(opponent_player["hand"]) or [],
+            "bench": opponent_player["bench"] or [],
+            "active": opponent_player["active"] or [],
             "prize": get_card_back_view(opponent_player["prize_cards"]),
             "deck": get_card_back_view(opponent_player["deck"]),
-            "trash": opponent_player["trash"],
-            "bonus_cards": opponent_player.get("bonus_cards", []),
+            "trash": opponent_player["trash"] or [],
+            "bonus_cards": get_card_back_view(opponent_player.get("bonus_cards", [])),
             "reshuffles": opponent_player.get("reshuffles", 0),
             "failed_hands": opponent_player.get("failed_hands", []),
+            "is_ready": p2_is_ready,
         }
     }

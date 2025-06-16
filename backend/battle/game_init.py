@@ -1,5 +1,5 @@
 from .utils import shuffle_deck, pop_cards, reshuffle_for_tane, has_basic_pokemon
-from .game_state import init_game, update_deck, set_hand, set_reshuffles, get_game_state, set_prize_cards, set_bonus_cards, set_failed_hands
+from .game_state import init_game, update_deck, set_hand, get_game_state, set_prize_cards, set_bonus_cards, set_failed_hands
 from battle.utils import format_game_state_for_player
 
 async def start_game_server_side(channel_layer, battle_id, player_one, player_two, player_one_deck, player_two_deck, player_one_channel, player_two_channel):
@@ -22,14 +22,12 @@ async def start_game_server_side(channel_layer, battle_id, player_one, player_tw
 
     # reshuffle if no basic pokemon in hand
     if not has_basic_pokemon(p1_hand):
-        p1_deck, p1_hand, p1_reshuffles, p1_failed_hands = reshuffle_for_tane(p1_deck, p1_hand)
+        p1_deck, p1_hand, p1_failed_hands = reshuffle_for_tane(p1_deck, p1_hand)
         set_hand(battle_id, player_one, p1_hand, p1_deck) 
-        set_reshuffles(battle_id, player_one, p1_reshuffles)
         set_failed_hands(battle_id, player_one, p1_failed_hands)
     if not has_basic_pokemon(p2_hand):
-        p2_deck, p2_hand, p2_reshuffles, p2_failed_hands = reshuffle_for_tane(p2_deck, p2_hand)
+        p2_deck, p2_hand, p2_failed_hands = reshuffle_for_tane(p2_deck, p2_hand)
         set_hand(battle_id, player_two, p2_hand, p2_deck) 
-        set_reshuffles(battle_id, player_two, p2_reshuffles)
         set_failed_hands(battle_id, player_two, p2_failed_hands)
 
     # set prize cards for each player
