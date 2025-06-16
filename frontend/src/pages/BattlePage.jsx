@@ -3,7 +3,7 @@ import { useGame } from '../contexts/BattleContext'
 import { ACCESS_TOKEN } from '../../constants'
 import GamePhase from '../utils/GamePhase'
 import ReshuffleButton from '../components/BattleComponents/ReshuffleButton'
-import WaitingMessage from '../components/BattleComponents/WaitingMessage'
+import MessageBox from '../components/BattleComponents/MessageBox'
 import PassButton from '../components/BattleComponents/PassButton'
 import PlayerSide from '../components/BattleComponents/PlayerSide'
 import FailedHands from '../components/BattleComponents/FailedHands'
@@ -16,8 +16,10 @@ function BattlePage() {
     const socketRef = useRef(null)
 
     const [isReshuffling, setIsReshuffling] = useState(false)
-    const [isWaitingForOpponent, setIsWaitingForOpponent] = useState(false)
+    const [displayMessage, setDisplayMessage] = useState(false)
     const [isSelectingBonus, setIsSelectingBonus] = useState(false)
+    const [message, setMessage] = useState("Waiting for other player...")
+    const [isReady, setIsReady] = useState(false)
 
     const [gameState, setGameState] = useState({
         playerOne: {
@@ -44,7 +46,6 @@ function BattlePage() {
                 type: "game_init",
                 deck: yourDeck
             }))
-
         }
 
         socket.onmessage = (event) => {
@@ -57,8 +58,9 @@ function BattlePage() {
                 case "recover_game_state": {
                     const reshuffles = state.playerOne.reshuffles
                     const failedHands = state.playerOne.failed_hands
+
                     // only draw prize cards after mulligan
-                    if (state.playerTwo.reshuffles === state.playerTwo.failed_hands.length){
+                    if (state.playerTwo.reshuffles === state.playerTwo.failed_hands.length) {
                         state.playerTwo.prize = data.gameState.playerTwo.prize
                     } else {
                         state.playerTwo.prize = []
@@ -85,8 +87,8 @@ function BattlePage() {
                 }
                 case "bonus_cards_dealt": {
                     console.log("Bonus cards were dealt!")
-                    state.playerOne.hand = [...state.playerOne.hand, ...state.playerOne.bonus_cards] 
-                    state.playerTwo.hand = [...state.playerTwo.hand, ...state.playerTwo.bonus_cards] 
+                    state.playerOne.hand = [...state.playerOne.hand, ...state.playerOne.bonus_cards]
+                    state.playerTwo.hand = [...state.playerTwo.hand, ...state.playerTwo.bonus_cards]
 
                     setGameState({
                         playerOne: { ...state.playerOne },
@@ -95,6 +97,24 @@ function BattlePage() {
                         phase: state.phase,
                     })
                     break;
+                }
+                case "active_selected": {
+                    setDisplayMessage(false)
+                    setIsReady(false)
+
+                    setGameState({
+                        playerOne: { ...state.playerOne },
+                        playerTwo: { ...state.playerTwo },
+                        turn: state.turn,
+                        phase: state.phase,
+                    })
+                    break;
+                }
+                case "waiting_for_opponent_active_selection": {
+                    setMessage("Waiting for opponent to choose active pokemon...")
+                    setIsReady(false)
+                    setDisplayMessage(true)
+                    break
                 }
             }
         }
@@ -113,7 +133,8 @@ function BattlePage() {
             gameState.playerTwo.reshuffles < gameState.playerTwo.failed_hands.length
         ) {
             // trigger an animation here
-            setIsWaitingForOpponent(true)
+            setDisplayMessage(true)
+            setMessage("Opponent is reshuffling...")
             console.log("Opponent is reshuffling...")
         } else if (
             gameState.phase === GamePhase.SETUP &&
@@ -123,13 +144,102 @@ function BattlePage() {
             // display bonus cards selection
             setIsSelectingBonus(true)
         } else {
-            setIsWaitingForOpponent(false)
+            setDisplayMessage(false)
         }
     }, [gameState.playerTwo.reshuffles])
+
+    useEffect(() => {
+        if (gameState.phase === GamePhase.SELECT_ACTIVE) {
+            setDisplayMessage(true)
+            setMessage("Choose Active pokemon!")
+        }
+    }, [gameState.phase])
 
     function handleReshuffle() {
         if (socketRef.current && socketRef.current.readyState === WebSocket.OPEN) {
             socketRef.current.send(JSON.stringify({ type: "reshuffle" }))
+        }
+    }
+
+    const handleClickOnHand = (pokemon) => {
+        if (gameState.phase === GamePhase.SELECT_ACTIVE) {
+            if (pokemon.supertype === "たね") {
+                if (gameState.playerOne.active.length === 0) {
+                    const newHand = gameState.playerOne.hand.filter(
+                        (card) => card !== pokemon
+                    );
+                    const newActive = [pokemon];
+
+                    setGameState((prevState) => ({
+                        ...prevState,
+                        playerOne: {
+                            ...prevState.playerOne,
+                            hand: newHand,
+                            active: newActive,
+                        }
+                    }));
+                    setIsReady(true)
+                } else {
+                    const newHand = gameState.playerOne.hand.filter(
+                        (card) => card !== pokemon
+                    );
+                    const newBench = [...gameState.playerOne.bench, pokemon];
+
+                    setGameState((prevState) => ({
+                        ...prevState,
+                        playerOne: {
+                            ...prevState.playerOne,
+                            hand: newHand,
+                            bench: newBench,
+                        }
+                    }));
+                }
+            }
+        }
+    };
+
+    const handleClickOnActive = (pokemon) => {
+        if (gameState.phase === GamePhase.SELECT_ACTIVE) {
+            const newActive = gameState.playerOne.active.filter(
+                (card) => card !== pokemon
+            );
+            const newHand = [...gameState.playerOne.hand, pokemon];
+
+            setGameState((prevState) => ({
+                ...prevState,
+                playerOne: {
+                    ...prevState.playerOne,
+                    active: newActive,
+                    hand: newHand,
+                }
+            }));
+            if (newActive.length < 1){
+                setIsReady(false)
+            }
+        }
+    };
+
+    const handleClickOnBench = (pokemon) => {
+        if (gameState.phase === GamePhase.SELECT_ACTIVE) {
+            const newBench = gameState.playerOne.bench.filter(
+                (card) => card !== pokemon
+            );
+            const newHand = [...gameState.playerOne.hand, pokemon];
+
+            setGameState((prevState) => ({
+                ...prevState,
+                playerOne: {
+                    ...prevState.playerOne,
+                    bench: newBench,
+                    hand: newHand,
+                }
+            }));
+        }
+    };
+
+    const handleReadyClick = () => {
+        if (socketRef.current && socketRef.current.readyState === WebSocket.OPEN) {
+            socketRef.current.send(JSON.stringify({ type: "active_selected", active: gameState.playerOne.active, bench: gameState.playerOne.bench}))
         }
     }
 
@@ -154,9 +264,9 @@ function BattlePage() {
                     data={gameState["playerOne"]}
 
                     onPrizeClick={() => { }}
-                    onHandClick={() => { }}
-                    onBenchClick={() => { }}
-                    onActiveClick={() => { }}
+                    onHandClick={handleClickOnHand}
+                    onBenchClick={handleClickOnBench}
+                    onActiveClick={handleClickOnActive}
                     onTrashClick={() => { }}
                     onDeckClick={() => { }}
 
@@ -165,8 +275,8 @@ function BattlePage() {
 
             </div>
             {isReshuffling && (<ReshuffleButton onReshuffle={handleReshuffle} />)}
-            {isWaitingForOpponent && <WaitingMessage />}
-            {isSelectingBonus && !isReshuffling  && (
+            {displayMessage && <MessageBox message={message} />}
+            {isSelectingBonus && !isReshuffling && (
                 <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-black bg-opacity-70 p-6 rounded-lg z-50">
                     <div className="flex space-x-6">
                         <FailedHands
@@ -180,12 +290,14 @@ function BattlePage() {
                                 socketRef.current.send(JSON.stringify({ type: "draw_bonus_cards", amount: num }))
                                 setIsSelectingBonus(false)
                                 setIsReshuffling(false)
+                                setMessage("Waiting for opponent...")
+                                setDisplayMessage(true)
                             }}
                         />
                     </div>
                 </div>
             )}
-            {/* {readyState && (<PassButton />)} */}
+            {isReady && (<PassButton onClick={handleReadyClick} message={gameState.phase === GamePhase.SELECT_ACTIVE ? "ready" : "pass"} />)}
         </div>
     )
 }

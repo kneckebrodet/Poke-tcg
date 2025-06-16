@@ -45,7 +45,8 @@ def init_game(battle_id, player1, player2, deck1, deck2, player1_channel, player
                 "is_ready": False,
             }
         },
-        "turn": player1,
+        "turn_order": [player1, player2],
+        "current_turn_index": 0,
         "phase": GamePhase.SETUP.value,
     }
 

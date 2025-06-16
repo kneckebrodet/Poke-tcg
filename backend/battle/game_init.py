@@ -22,11 +22,11 @@ async def start_game_server_side(channel_layer, battle_id, player_one, player_tw
 
     # reshuffle if no basic pokemon in hand
     if not has_basic_pokemon(p1_hand):
-        p1_deck, p1_hand, p1_reshuffles, p1_failed_hands = reshuffle_for_tane(p1_deck, p1_hand)
+        p1_deck, p1_hand, p1_failed_hands = reshuffle_for_tane(p1_deck, p1_hand)
         set_hand(battle_id, player_one, p1_hand, p1_deck) 
         set_failed_hands(battle_id, player_one, p1_failed_hands)
     if not has_basic_pokemon(p2_hand):
-        p2_deck, p2_hand, p2_reshuffles, p2_failed_hands = reshuffle_for_tane(p2_deck, p2_hand)
+        p2_deck, p2_hand, p2_failed_hands = reshuffle_for_tane(p2_deck, p2_hand)
         set_hand(battle_id, player_two, p2_hand, p2_deck) 
         set_failed_hands(battle_id, player_two, p2_failed_hands)
 
