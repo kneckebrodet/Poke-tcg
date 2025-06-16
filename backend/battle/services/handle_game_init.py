@@ -5,7 +5,8 @@ from battle.services.pending_game_tracker import (
     get_ready_players
 )
 from battle.game_init import start_game_server_side, format_game_state_for_player
-from battle.game_state import get_game_state
+from battle.game_state import get_game_state, set_game_state, set_bonus_cards
+from battle.utils import pop_cards
 
 async def handle_game_init(consumer, data):
     player = consumer.user.username
@@ -44,3 +45,76 @@ async def handle_game_init(consumer, data):
         player_one_channel=data_one["channel_name"],
         player_two_channel=data_two["channel_name"]
     )
+
+async def handle_reshuffle(consumer):
+    player = consumer.user.username
+    battle_id = consumer.battle_id
+    channel_layer = consumer.channel_layer
+
+    game = get_game_state(battle_id)
+    if not game:
+        return
+
+    opponent = [p for p in game["players"] if p != player][0]
+
+    player_one_channel = game["players"][player]["channel_name"]
+    player_two_channel = game["players"][opponent]["channel_name"]
+
+    player_data = game["players"].get(player)
+    if not player_data:
+        return
+
+    player_data["reshuffles"] += 1
+
+    set_game_state(battle_id, game)
+
+    p1_game_state = format_game_state_for_player(game, player)
+    p2_game_state = format_game_state_for_player(game, opponent)
+
+    await channel_layer.send(player_one_channel, {
+        "type": "initial_hand",
+        "game": p1_game_state,
+    })
+
+    await channel_layer.send(player_two_channel, {
+        "type": "initial_hand",
+        "game": p2_game_state,
+    })
+
+async def handle_draw_bonus_cards(consumer, data):
+    player = consumer.user.username
+    channel_layer = consumer.channel_layer
+    battle_id = consumer.battle_id
+    amount = data.get("amount")
+
+    game = get_game_state(battle_id)
+    if not game:
+        return
+
+    opponent = [p for p in game["players"] if p != player][0]
+
+    player_one_channel = game["players"][player]["channel_name"]
+    player_two_channel = game["players"][opponent]["channel_name"]
+
+    player_data = game["players"].get(player)
+    if not player_data:
+        return 
+
+    deck = player_data["deck"]
+    bonus_cards = pop_cards(deck, amount)
+    set_bonus_cards(battle_id, player, bonus_cards, deck)
+
+    set_game_state(battle_id, game)
+
+    p1_game_state = format_game_state_for_player(game, player)
+    p2_game_state = format_game_state_for_player(game, opponent)
+
+    await channel_layer.send(player_one_channel, {
+        "type": "bonus_cards_dealt",
+        "game": p1_game_state,
+    })
+
+    await channel_layer.send(player_two_channel, {
+        "type": "bonus_cards_dealt",
+        "game": p2_game_state,
+    })
