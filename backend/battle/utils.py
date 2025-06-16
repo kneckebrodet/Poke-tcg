@@ -42,7 +42,7 @@ def format_game_state_for_player(game, player):
             game["phase"] = GamePhase.SELECT_ACTIVE.value
 
     return {
-        "turn": game["turn"], 
+        "turn": game["turn_order"][game["current_turn_index"]],
         "phase": game["phase"],
         "playerOne": {
             "hand": player["hand"] or [],
